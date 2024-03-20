@@ -1,9 +1,7 @@
 from flask import Flask, jsonify, request
 from flask.json.provider import DefaultJSONProvider
-import requests
 
 from model.twit import Twit
-from model.user import User
 
 
 twits = []
@@ -26,6 +24,10 @@ app.json = CustomJSONProvider(app)
 def ping():
     return jsonify({'response': 'pong'})
 
+
+# объединил методы GET и POST, правильней было бы их сделать
+# по отдельности, но интересно было попробовать так
+
 @app.route('/twit', methods=['GET', 'POST'])
 def twit_functions():
     if request.method == 'GET':
@@ -35,6 +37,47 @@ def twit_functions():
         twit = Twit(twit_json['body'], twit_json['author'], twit_json['id'])
         twits.append(twit)
         return jsonify({'status': 'success'})
+
+
+# изменяем твит по номеру твита в списке (id)
+    
+@app.route('/twit', methods=['PUT'])
+def edit_twit():
+    twit_json = request.get_json()
+    author = twit_json.get('author')
+    body = twit_json.get('body')
+    id = twit_json.get("id")
+    twits[id] = twit_json
+    return jsonify({'author': author, 'body': body, 'id': id, 'edit': 'success'})
+
+
+# удаляем твит по номеру твита в списке (id)
+
+@app.route('/twit', methods=['DELETE'])
+def delete_twit():
+    twit_json = request.get_json()
+    id = twit_json.get("id")
+    del twits[id]
+    return jsonify({'delete': 'complete'})
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+
+
+
+
+
+# ниже пробы и черновики
+
+
+
+# result = next(d['Age'] for d in example['list'] if d.get('Surname') == 'surname5')
+# result = example["list"][4]["Age"]
+
 
 # @app.route('/twit', methods=['POST'])
 # def create_twit():
@@ -49,26 +92,6 @@ def twit_functions():
 # def read_twits():
 #     return jsonify({'twits': twits})
 
-@app.route('/twit', methods=['PUT'])
-def edit_twit():
-    twit_json = request.get_json()
-    author = twit_json.get('author')
-    body = twit_json.get('body')
-    id = twit_json.get("id")
-    twits[id] = twit_json
-    return jsonify({'author': author, 'body': body, 'id': id, 'edit': 'success'})
-
-@app.route('/twit', methods=['DELETE'])
-def delete_twit():
-    twit_json = request.get_json()
-    author = twit_json.get('author')
-    body = twit_json.get('body')
-    id = twit_json.get("id")
-    del twits[id]
-    return jsonify({'author': author, 'body': body, 'id': id, 'delete': 'complete'})
-
-# result = next(d['Age'] for d in example['list'] if d.get('Surname') == 'surname5')
-# result = example["list"][4]["Age"]
 
 # @app.route('/users/<int:user_id>', methods=['PUT'])
 # def pythongeeks_update_user(user_id):
@@ -97,8 +120,5 @@ def delete_twit():
 
 
 
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 # , use_reloader=False
